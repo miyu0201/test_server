@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: virtwin-payment-server
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 80
+      - key: CORS_ORIGIN
+        value: https://virtwin-energy.se
+      - key: STRIPE_SECRET_KEY
+        sync: false 
