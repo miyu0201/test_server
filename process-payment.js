@@ -1,9 +1,18 @@
 const express = require('express');
 const router = express.Router();
+
+// Check if Stripe secret key is available
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('STRIPE_SECRET_KEY environment variable is not set');
+  throw new Error('Stripe configuration missing');
+}
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 router.post('/process-payment', async (req, res) => {
   try {
+    console.log('Payment request received:', JSON.stringify(req.body, null, 2));
+    
     const { 
       payment_method,
       payment_method_id,
@@ -11,12 +20,23 @@ router.post('/process-payment', async (req, res) => {
       personal_number,
       plan, 
       cycle, 
-      price, 
-      billing_details 
+      price,
+      amount: clientAmount,
+      billing_details,
+      metadata
     } = req.body;
 
-    // Convert price to öre (1 SEK = 100 öre)
-    const amount = Math.round(parseFloat(price) * 100);
+    // Handle amount - either from amount field (client sends in öre) or price field (convert to öre)
+    let amount;
+    if (clientAmount && !isNaN(clientAmount)) {
+      amount = parseInt(clientAmount);
+    } else if (price && !isNaN(price)) {
+      amount = Math.round(parseFloat(price) * 100);
+    } else {
+      throw new Error('Invalid amount or price provided');
+    }
+
+    console.log('Calculated amount in öre:', amount);
 
     let paymentIntent;
 
@@ -40,7 +60,8 @@ router.post('/process-payment', async (req, res) => {
           confirm: true,
           metadata: {
             plan: plan,
-            cycle: cycle
+            cycle: cycle,
+            ...metadata
           },
           payment_method_types: ['card'],
           return_url: 'https://virtwin-energy.se/success.html'
@@ -56,7 +77,8 @@ router.post('/process-payment', async (req, res) => {
           metadata: {
             plan: plan,
             cycle: cycle,
-            swish_number: swish_number
+            swish_number: swish_number,
+            ...metadata
           }
         });
 
@@ -83,7 +105,8 @@ router.post('/process-payment', async (req, res) => {
           metadata: {
             plan: plan,
             cycle: cycle,
-            personal_number: personal_number
+            personal_number: personal_number,
+            ...metadata
           },
           redirect: {
             return_url: 'https://virtwin-energy.se/success.html'
@@ -99,7 +122,8 @@ router.post('/process-payment', async (req, res) => {
           confirm: true,
           metadata: {
             plan: plan,
-            cycle: cycle
+            cycle: cycle,
+            ...metadata
           },
           return_url: 'https://virtwin-energy.se/success.html'
         });
@@ -125,14 +149,18 @@ router.post('/process-payment', async (req, res) => {
       });
     } else {
       // Payment successful
+      console.log('Payment successful:', paymentIntent.id);
       res.json({
-        success: true
+        success: true,
+        payment_intent_id: paymentIntent.id
       });
     }
   } catch (err) {
     console.error('Payment processing error:', err);
+    console.error('Error stack:', err.stack);
     res.status(500).json({
-      error: err.message
+      error: err.message,
+      type: err.type || 'general_error'
     });
   }
 });
