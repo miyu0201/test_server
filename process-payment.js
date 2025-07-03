@@ -64,7 +64,7 @@ router.post('/process-payment', async (req, res) => {
             ...metadata
           },
           payment_method_types: ['card'],
-          return_url: 'https://virtwin-energy.se/success.html'
+          return_url: 'https://virtwin-energy.se/payment-success.html'
         });
         break;
 
@@ -85,7 +85,7 @@ router.post('/process-payment', async (req, res) => {
         // Confirm the Swish payment
         await stripe.paymentIntents.confirm(paymentIntent.id, {
           payment_method: 'swish',
-          return_url: 'https://virtwin-energy.se/success.html'
+          return_url: 'https://virtwin-energy.se/payment-success.html'
         });
         break;
 
@@ -109,7 +109,7 @@ router.post('/process-payment', async (req, res) => {
             ...metadata
           },
           redirect: {
-            return_url: 'https://virtwin-energy.se/success.html'
+            return_url: 'https://virtwin-energy.se/payment-success.html'
           }
         });
 
@@ -125,7 +125,7 @@ router.post('/process-payment', async (req, res) => {
             cycle: cycle,
             ...metadata
           },
-          return_url: 'https://virtwin-energy.se/success.html'
+          return_url: 'https://virtwin-energy.se/payment-success.html'
         });
         break;
 

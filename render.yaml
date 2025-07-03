@@ -8,8 +8,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 80
+        value: 10000
       - key: CORS_ORIGIN
-        value: https://virtwin-energy.se
-      - key: STRIPE_SECRET_KEY
-        sync: false 
+        value: https://virtwin-energy.se 
