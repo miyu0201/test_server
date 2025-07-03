@@ -11,7 +11,17 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static('../')); // Serve static files from parent directory
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    message: 'Virtwin Energy Payment Server',
+    endpoints: {
+      payment: '/api/process-payment'
+    }
+  });
+});
 
 // Routes
 app.use('/api', paymentRoutes);
